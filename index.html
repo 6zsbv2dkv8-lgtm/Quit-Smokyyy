@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>QuitSmoke</title>
+
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 28px;
+        }
+
+        #button-container {
+            margin-top: 40px;
+        }
+
+        #smoke-btn {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: none;
+            background: url('cigarro.png') no-repeat center/cover;
+            cursor: pointer;
+            transition: transform .15s ease;
+        }
+
+        #smoke-btn:active {
+            transform: scale(0.92);
+        }
+
+        .history {
+            margin-top: 40px;
+            padding: 20px;
+            background: #111;
+            border-radius: 10px;
+            width: 88%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .motivation {
+            margin-top: 20px;
+            font-size: 16px;
+            opacity: .8;
+        }
+
+        .stats {
+            margin-top: 25px;
+            font-size: 14px;
+            opacity: .75;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <h1>QuitSmoke</h1>
+
+    <div id="button-container">
+        <button id="smoke-btn"></button>
+    </div>
+
+    <div class="motivation" id="motivation"></div>
+
+    <div class="history">
+        <h3>Histórico</h3>
+        <ul id="history-list" style="list-style:none; padding:0;"></ul>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <script>
+        const phrases = [
+            "Você merece respirar liberdade.",
+            "Cada clique é uma vitória.",
+            "Seu corpo agradece.",
+            "Continue — você está vencendo.",
+            "Um a menos importa.",
+            "Respire. Você está no controle.",
+            "O amanhã depende do agora.",
+            "Você já venceu lutas piores.",
+            "Cada escolha constrói o futuro.",
+            "Persistência vence vícios.",
+            "Sua saúde vale mais.",
+            "Você é mais forte do que pensa.",
+            "Seja o exemplo para você mesmo.",
+            "O ar puro te chama.",
+            "Seu fôlego merece descanso.",
+            "O poder está na sua decisão.",
+            "Um passo por vez te leva longe.",
+            "O vício não te define.",
+            "Você escolhe o próximo capítulo.",
+            "Seu corpo não esquece o cuidado.",
+            "Respira fundo e segue.",
+            "Você está quebrando correntes.",
+            "Seu futuro sorri para você.",
+            "Autocontrole é liberdade.",
+            "Cada clique é consciência.",
+            "A mudança começou.",
+            "Hoje você cuida de você.",
+            "Você tem um chamado maior.",
+            "Seu tempo vale mais que um cigarro."
+        ];
+
+        function updateMotivation() {
+            const text = phrases[Math.floor(Math.random() * phrases.length)];
+            document.getElementById("motivation").textContent = text;
+        }
+
+        function updateStats(list) {
+            if (list.length < 2) {
+                document.getElementById("stats").textContent = "Registre mais vezes para ver a média.";
+                return;
+            }
+
+            const diffs = [];
+            for (let i=1; i<list.length; i++) {
+                const d = new Date(list[i]) - new Date(list[i-1]);
+                diffs.push(d);
+            }
+
+            const avgMs = diffs.reduce((a,b)=>a+b,0) / diffs.length;
+            const avgMin = Math.round(avgMs/60000);
+
+            document.getElementById("stats").textContent =
+                "Média entre cigarros: " + avgMin + " min";
+        }
+
+        function loadHistory() {
+            const raw = localStorage.getItem("smokeHistory");
+            const list = raw ? JSON.parse(raw) : [];
+            return list;
+        }
+
+        function saveHistory(list) {
+            localStorage.setItem("smokeHistory", JSON.stringify(list));
+        }
+
+        function renderHistory() {
+            const list = loadHistory();
+            const ul = document.getElementById("history-list");
+            ul.innerHTML = "";
+
+            list.slice().reverse().forEach(time => {
+                const li = document.createElement("li");
+                li.textContent = new Date(time).toLocaleString();
+                ul.appendChild(li);
+            });
+
+            updateStats(list);
+        }
+
+        document.getElementById("smoke-btn").addEventListener("click", () => {
+            const list = loadHistory();
+            list.push(new Date().toISOString());
+            saveHistory(list);
+            renderHistory();
+            updateMotivation();
+        });
+
+        renderHistory();
+        updateMotivation();
+    </script>
+
+</body>
+</html>
